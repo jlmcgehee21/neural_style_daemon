@@ -1,0 +1,46 @@
+__author__ = 'Jeff'
+
+import os
+from fabric.api import run, cd, env, lcd, sudo, put, local, settings
+
+
+CURDIR = os.path.dirname(os.path.realpath(__file__))
+
+local_app_dir = os.path.join(os.path.dirname(CURDIR))
+remote_app_dir = '/opt/neural_style_daemon'
+
+
+def prod():
+    env.hosts = ['ip_addr']
+    env.user = 'user'
+    env.password = 'pass'
+    env.keepalive = 20
+    # env.command_timeout = 30
+
+
+def deploy():
+
+    with settings(warn_only=True):
+        sudo('stop neural_style_daemon')
+        sudo('rm /etc/init/neural_style_daemon.conf')
+
+    with lcd(local_app_dir):
+        sudo('mkdir -p %s' % (remote_app_dir))
+        with cd(remote_app_dir):
+            put('*', './', use_sudo=True)
+
+
+
+    put('neural_style_daemon.conf', '/etc/init', use_sudo=True)
+
+
+    sudo('service neural_style_daemon start')
+
+    print('Neural Style Daemon Running!')
+
+
+
+
+if __name__ == "__main__":
+
+    print(local_app_dir)
